@@ -1,6 +1,8 @@
 import base64
 import json
 
+import config
+
 def parse_bearer_token(bearer):
     parts = bearer.split('.')
     if len(parts) != 3:
@@ -9,7 +11,7 @@ def parse_bearer_token(bearer):
         raise Exception("Invalid header")
     try:
         payload = json.loads(ub64d(parts[1]))
-        return payload["exp"], int(payload["account_no"]), payload["np_game_account_id"]
+        return payload["exp"], int(payload["account_no"]), payload["np_game_account_id"], payload["type"]
     except:
         raise Exception("Error while parsing payload")
     assert(False) # unreachable
@@ -33,3 +35,12 @@ def merge(x, y):
     z = x.copy()   # start with keys and values of x
     z.update(y)    # modifies z with keys and values of y
     return z
+
+# Logging related
+def warning(msg):
+    if not config.SHOW_WARNING: # Check warning log level
+        return
+    print("<py-universe.warn> {}".format(msg))
+
+def fail(msg):
+    print("<py-universe.fail> {}".format(msg))
