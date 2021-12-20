@@ -1,7 +1,7 @@
 import base64
 import json
 
-import config
+from . import config
 
 def parse_bearer_token(bearer):
     parts = bearer.split('.')
