@@ -21,5 +21,3 @@ venv.bak/
 .ionide
 !.vscode/*.code-snippets
 universe/config.py
-tests
-tests/*
