@@ -8,6 +8,9 @@ class FNSArtist():
     """
 
     def __init__(self, account_no, artist_id, nickname, profile_picture):
+        """ (FNSAttachment, String, Int, String,String) -> NoneType
+        Initialize FNSArtist Object
+        """
         self.feeds = {}
         self.attachments = {}
         self.account_no = account_no
@@ -109,10 +112,14 @@ class FNSFeed():
         artist.AddFeed(self)
     
     def AddTag(self, tag):
+        """ (FNSFeed, String) -> NoneType
+        Add a tag to current FNSFeed
+        """
         self.tags.append(tag)
 
     def __str__(self):
         return "<FNSFeed: [{}] {}>".format(self.artist.nickname, self.feed_id)
+
     def like():
         #TODO: implement
         pass
@@ -125,22 +132,30 @@ class FNSModule():
     tags = {}
 
     def __addArtist(self, account_no, artist):
+        """ PRIVATE (FNSModule, string, FNSArtist) -> NoneType
+        Add a FNSArtist to current FNSModule
+        """
         self.artists[account_no] = artist
     
     def __addFeed(self, feed_id, feed):
+        """ PRIVATE (FNSModule, string, FNSFeed) -> NoneType
+        Add a FNSFeed to current FNSModule
+        """
         if not feed_id in self.feeds:
             self.feeds[feed_id] = feed
     
     def __addAttachment(self, attachment_id, attachment):
+        """ PRIVATE (FNSModule, string, FNSAttachment) -> NoneType
+        Add a FNSAttachment to current FNSModule
+        """
         if not attachment_id in self.attachments:
             self.attachments[attachment_id] = attachment
 
-    def __init__(self, sess):
-        self.__SESS = sess
-        self.artists = {}
-        self.feeds = {}
-
     def __processFeed(self, f):
+        """ PRIVATE (FNSModule, Object) -> Boolean
+        Process parsed FNS Feed JSON object
+        Return True on success, false on failure.
+        """
         # if already processed, pass
         if f["id"] in self.feeds:
             return False
@@ -184,7 +199,21 @@ class FNSModule():
         self.__addFeed(feed.feed_id, feed)
         return True
     
-    def LoadFeed(self, planet_id, artist_id = 1, next = 0.0, search_user = 0.0, size = 10, tags = ''):
+    def __init__(self, sess):
+        """ (FNSModule, UserSession) -> NoneType
+        Initialize FNSModule with given UserSession
+        """
+        self.__SESS = sess
+        self.artists = {}
+        self.feeds = {}
+        self.attachments = {}
+
+    def LoadFeed(self, planet_id, artist_id = 1, next = 0.0, search_user = '', size = 10, tags = ''):
+        """ PRIVATE (FNSModule, Int, Int, Float, String, Int, String) -> (Int, Float)
+        Load FNS feeds from given planet id and information.
+        Also, process feeds internally.
+        Returns a tuple of the number of feeds proceed and the next search parameter.
+        """
         code, fns_obj, extra = self.__SESS.Get("https://api.universe-official.io/fns/feeds", {
             "planet_id": planet_id, "artist_id": artist_id, "next": next,
             "search_user": search_user, "size": size, "tags": tags
