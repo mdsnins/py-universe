@@ -21,3 +21,4 @@ venv.bak/
 .ionide
 !.vscode/*.code-snippets
 universe/config.py
+playground.py
