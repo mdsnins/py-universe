@@ -1,5 +1,6 @@
 import base64
 import json
+from datetime import datetime
 
 from . import config
 
@@ -15,6 +16,12 @@ def parse_bearer_token(bearer):
     except:
         raise Exception("Error while parsing payload")
     assert(False) # unreachable
+
+def convert_timestr(timestr):
+    if timestr[-3] != ":":
+        timestr = timestr[:-2] + ":" + timestr[-2:]
+    return datetime.fromisoformat(timestr) \
+                   .astimezone().strftime("%Y/%m/%d (%a) %H:%M:%S")
 
 def b64e(plaintext, charset='latin-1'):
     return base64.b64encode(plaintext.encode(charset)).decode()
