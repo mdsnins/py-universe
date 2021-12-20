@@ -53,7 +53,7 @@ class Http():
         try:
             decrypted = self.JWE.deserialize_compact(resp.text, self.KEK)
             try:
-                return 0, json.loads(decrypted["payload"].decode())["data"]
+                return 0, json.loads(decrypted["payload"].decode())["data"], None
             except:
                 return 1002, "Abnormal API response", decrypted["payload"]
         except:
@@ -136,7 +136,7 @@ class Http():
 
         payload = self.__generateJWE(query)
         body = self.__generateJWE(data)
-        resp = requests.get(target, headers = {
+        resp = requests.post(target, headers = {
             "Payload": payload,
             "Accept": "text/plain",
             "Content-Type": "application/json; charset=utf-8",
