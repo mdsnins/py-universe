@@ -74,7 +74,7 @@ class Http():
         Create new Http instance with specific bearer token and JWE KEK.
         """
         # check the validity of bearer token
-        exp, no, id = parse_bearer_token(bearer)
+        exp, no, id, _ = parse_bearer_token(bearer)
         if exp <= time():
             raise Exception("Token has been expired")
 
@@ -95,7 +95,7 @@ class Http():
             return
 
         # check the validity of bearer token
-        exp, no, id = parse_bearer_token(new_bearer)
+        exp, no, id, _ = parse_bearer_token(new_bearer)
         if exp <= time():
             raise Exception("The new token has been expired")
         if preserve_user:
@@ -111,14 +111,14 @@ class Http():
         self.EXP = exp
 
     def Get(self, target, query = {}):
-        """ (Http, String, Dictionary<String, String>) -> (Int, Object)
+        """ (Http, String, Object) -> (Int, Object | String, NoneType | Object | String)
         Attemp to call API GET request to target, and parse it.
         Returns code 0 and parsed result if succeed.
         Otherwise, returns a positive number with message.
         """
         
         if self.EXP < time():
-            return 1099, "Token has been expired", None
+            return 9999, "Token has been expired", None
 
         payload = self.__generateJWE(query)
         resp = requests.get(target, headers = {
@@ -134,13 +134,13 @@ class Http():
         return self.__handleResponse(resp)
 
     def Post(self, target, query = {}, data = {}):
-        """ (Http, String, Dictionary<String, String>, Dictionary<String, String>) -> (Int, Object)
+        """ (Http, String, Object, Object) -> (Int, Object | String, NoneType | Object | String)
         Attemp to call API POST request to target, and parse it.
         Returns code 0 and parsed result if succeed.
         Otherwise, returns a positive number with message.
         """
         if self.EXP < time():
-            return 1099, "Token has been expired", None
+            return 9999, "Token has been expired", None
 
         payload = self.__generateJWE(query)
         body = self.__generateJWE(data)
