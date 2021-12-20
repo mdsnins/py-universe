@@ -25,6 +25,9 @@ class Http():
     __VERIFY = True
 
     def __generateJWE(self, jwe_payload):
+        """ PRIVATE (Http, Object) -> String
+        Create a JWE string with given jwe_payload and user authorities.
+        """
         real_payload = merge({
             "account_no": self.ACCOUNT_NO,
             "np_game_account_id": self.NP_GAME_ACCOUNT_ID
@@ -48,6 +51,11 @@ class Http():
         return self.JWE.serialize_compact(header, payload, self.KEK).decode()
 
     def __handleResponse(self, resp):
+        """ PRIVATE (Http, requests.Response) -> (Int, Object | String, NoneType | Object | String)
+        Process the given HTTP Response object properly, then try to decrypt and parse.
+        If there isn't any problem, (0, Object, None) will be returned.
+        Otherwise, (Int, String, Object) will be returned.
+        """
         if resp.status_code != 200:
             return 1098, "HTTP request failed", resp
         try:
