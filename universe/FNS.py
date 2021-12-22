@@ -221,10 +221,11 @@ class FNSModule():
         Also, process feeds internally.
         Returns a tuple of the number of feeds proceed and the next search parameter.
         """
-        self.artists[planet_id] = dict()
-        self.feeds[planet_id] = dict()
-        self.attachments[planet_id] = dict()
-        self.tags[planet_id] = dict()
+        if not planet_id in self.artists:
+            self.artists[planet_id] = dict()
+            self.feeds[planet_id] = dict()
+            self.attachments[planet_id] = dict()
+            self.tags[planet_id] = dict()
 
         code, fns_obj, _ = self.__SESS.Get("https://api.universe-official.io/fns/feeds", {
             "planet_id": planet_id, "artist_id": artist_id, "next": next,
