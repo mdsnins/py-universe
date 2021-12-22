@@ -1,6 +1,6 @@
 from time import time
 from .config import JWE_KEY
-from .util import parse_bearer_token, warning, fail
+from .util import parse_bearer_token, warning
 from .Http import Http
 
 class UserSession():
