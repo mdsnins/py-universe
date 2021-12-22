@@ -1,9 +1,5 @@
 # Configuration Files for py-universe
 
-# py-universe settings
-from universe.config import TEST_ACCESS_TOKEN
-
-
 SHOW_WARNING = True
 
 # Must be replaced to valid 256bit key.
