@@ -72,10 +72,8 @@ class VODModule():
         """ (VODModule, Int) -> NoneType
         Load VOD Series of the given planet_id
         """
-        if self.__SERIES_URL is None:
-            raise Exception("VODModule cannot be used standalone")
         
-        code, fns_obj, extra = self.__SESS.Get(self.__SERIES_URL, {
+        code, fns_obj, extra = self.__SESS.Get("https://api.universe-official.io/media/vodseries", {
             "planet_id": planet_id
         })
 
