@@ -37,6 +37,9 @@ class VODSeries():
         if square:
             self.thumb_square = square
 
+    def __str__(self):
+        "<VODSeries: ({}) {}>".format(self.vod_series_no, self.title)
+
 class VODModule():
     """
     Class VODModule

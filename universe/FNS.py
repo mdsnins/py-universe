@@ -32,6 +32,9 @@ class FNSArtist():
         """
         self.attachments[attachment.attachment_id] =  attachment
 
+    def __str__(self):
+        return "<FNSArtist: ({}, {}) {}".format(self.artist_id, self.account_no, self.nickname)
+
 class FNSAttachment():
     """
     Class FNSAttachment
@@ -67,6 +70,9 @@ class FNSAttachment():
         """
         self.artist = artist
         artist.AddAttachment(self)
+
+    def __str__(self):
+        return "<FNSAttachment: ({}) {}-{}>".format(self.attachment_id, self.artist.nickname, self.type)
 
 class FNSFeed():
     """
@@ -118,7 +124,7 @@ class FNSFeed():
         self.tags.append(tag)
 
     def __str__(self):
-        return "<FNSFeed: [{}] {}>".format(self.artist.nickname, self.feed_id)
+        return "<FNSFeed: ({}) {}>".format(self.feed_id, self.artist.nickname)
 
     def like():
         #TODO: implement
