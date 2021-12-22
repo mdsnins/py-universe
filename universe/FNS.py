@@ -226,10 +226,13 @@ class FNSModule():
         self.attachments[planet_id] = dict()
         self.tags[planet_id] = dict()
 
-        _, fns_obj, _ = self.__SESS.Get("https://api.universe-official.io/fns/feeds", {
+        code, fns_obj, _ = self.__SESS.Get("https://api.universe-official.io/fns/feeds", {
             "planet_id": planet_id, "artist_id": artist_id, "next": next,
             "search_user": search_user, "size": size, "tags": tags
         })
+
+        if code != 0:
+            raise Exception("Error while fetching FNS feed")
 
         fns_obj = fns_obj["fns"]
 
