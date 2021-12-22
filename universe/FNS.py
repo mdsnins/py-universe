@@ -132,77 +132,77 @@ class FNSFeed():
 
 class FNSModule():
     __SESS = None
-    artists = {}
-    attachments = {}
-    feeds = {}
-    tags = {}
+    artists = {}      # Dictionary<planet_id, Dictionary<account_no, FNSArtist>>
+    attachments = {}  # Dictionary<planet_id, Dictionary<attachment_id, FNSAttachment>>
+    feeds = {}        # Dictionary<planet_id, Dictionary<feed_id, FNSFeed>>
+    tags = {}         # Dictionary<planet_id, Dictionary<tag, List<FNSFeed>>>
 
-    def __addArtist(self, account_no, artist):
+    def __addArtist(self, planet_id, account_no, artist):
         """ PRIVATE (FNSModule, string, FNSArtist) -> NoneType
         Add a FNSArtist to current FNSModule
         """
-        self.artists[account_no] = artist
+        self.artists[planet_id][account_no] = artist
     
-    def __addFeed(self, feed_id, feed):
+    def __addFeed(self, planet_id, feed_id, feed):
         """ PRIVATE (FNSModule, string, FNSFeed) -> NoneType
         Add a FNSFeed to current FNSModule
         """
         if not feed_id in self.feeds:
-            self.feeds[feed_id] = feed
+            self.feeds[planet_id][feed_id] = feed
     
-    def __addAttachment(self, attachment_id, attachment):
+    def __addAttachment(self, planet_id, attachment_id, attachment):
         """ PRIVATE (FNSModule, string, FNSAttachment) -> NoneType
         Add a FNSAttachment to current FNSModule
         """
         if not attachment_id in self.attachments:
-            self.attachments[attachment_id] = attachment
+            self.attachments[planet_id][attachment_id] = attachment
 
-    def __processFeed(self, f):
+    def __processFeed(self, planet_id, f):
         """ PRIVATE (FNSModule, Object) -> Boolean
         Process parsed FNS Feed JSON object
         Return True on success, false on failure.
         """
         # if already processed, pass
-        if f["id"] in self.feeds:
+        if f["id"] in self.feeds[planet_id]:
             return False
 
         # parse the artist first
-        if not f["account_no"] in self.artists:
+        if not f["account_no"] in self.artists[planet_id]:
             # add
-            self.__addArtist(f["account_no"],
+            self.__addArtist(planet_id, f["account_no"],
                 FNSArtist(f["account_no"], f["artist_id"], f["nickname"], f["profile_picture"])
             )
-        elif self.artists[f["account_no"]].artist_id == -1:
+        elif self.artists[planet_id][f["account_no"]].artist_id == -1:
             # update
-            self.artists[f["account_no"]].artist_id = f["artist_id"]
-            self.artists[f["account_no"]].nickname = f["nickname"]
-            self.artists[f["account_no"]].profile_picture = f["profile_picture"]
+            self.artists[planet_id][f["account_no"]].artist_id = f["artist_id"]
+            self.artists[planet_id][f["account_no"]].nickname = f["nickname"]
+            self.artists[planet_id][f["account_no"]].profile_picture = f["profile_picture"]
         
         feed = FNSFeed(f["id"])
         feed.SetBody(f["body"])
         feed.SetDate(f.get("create_date", ""), f.get("modify_date", ""), f.get("publish_date", ""))
         
         for a in f["attach_urls"]:
-            if not a["account_no"] in self.artists:
+            if not a["account_no"] in self.artists[planet_id]:
                 # add dummy artist
-                self.__addArtist(a["account_no"],
+                self.__addArtist(planet_id, a["account_no"],
                     FNSArtist(a["account_no"], -1, "", "")
                 )
             attach = FNSAttachment(a["id"])
             attach.SetDate(f.get("create_date", ""), f.get("publish_date", ""))
             attach.SetFile(a["file"], a["type"])
-            attach.SetArtist(self.artists[a["account_no"]])
-            self.__addAttachment(attach.attachment_id, attach)
+            attach.SetArtist(self.artists[planet_id][a["account_no"]])
+            self.__addAttachment(planet_id, attach.attachment_id, attach)
             feed.AddAttachment(attach)
 
         for tag in f.get("tags", []):
             feed.AddTag(tag)
             if not tag in self.tags:
-                self.tags[tag] = []
-            self.tags[tag].append(feed)
+                self.tags[planet_id][tag] = []
+            self.tags[planet_id][tag].append(feed)
 
-        feed.SetArtist(self.artists[f["account_no"]])
-        self.__addFeed(feed.feed_id, feed)
+        feed.SetArtist(self.artists[planet_id][f["account_no"]])
+        self.__addFeed(planet_id, feed.feed_id, feed)
         return True
     
     def __init__(self, sess):
@@ -213,6 +213,7 @@ class FNSModule():
         self.artists = {}
         self.feeds = {}
         self.attachments = {}
+        self.tags = {}
 
     def LoadFeed(self, planet_id, artist_id = 1, next = 0.0, search_user = '', size = 10, tags = ''):
         """ PRIVATE (FNSModule, Int, Int, Float, String, Int, String) -> (Int, Float)
@@ -220,7 +221,12 @@ class FNSModule():
         Also, process feeds internally.
         Returns a tuple of the number of feeds proceed and the next search parameter.
         """
-        code, fns_obj, extra = self.__SESS.Get("https://api.universe-official.io/fns/feeds", {
+        self.artists[planet_id] = dict()
+        self.feeds[planet_id] = dict()
+        self.attachments[planet_id] = dict()
+        self.tags[planet_id] = dict()
+
+        _, fns_obj, _ = self.__SESS.Get("https://api.universe-official.io/fns/feeds", {
             "planet_id": planet_id, "artist_id": artist_id, "next": next,
             "search_user": search_user, "size": size, "tags": tags
         })
@@ -229,7 +235,7 @@ class FNSModule():
 
         count = 0
         for feed in fns_obj["feeds"]:
-            if self.__processFeed(feed):
+            if self.__processFeed(planet_id, feed):
                 count += 1
         
         return count, fns_obj["next"]
