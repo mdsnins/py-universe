@@ -158,14 +158,18 @@ class FNSModule():
             self.attachments[planet_id][attachment_id] = attachment
 
     def __processFeed(self, planet_id, f):
-        """ PRIVATE (FNSModule, Object) -> Boolean
+        """ PRIVATE (FNSModule, Object) -> FNSFeed
         Process parsed FNS Feed JSON object
-        Return True on success, false on failure.
         """
+        
+        escape = False
         # if already processed, pass
         if f["id"] in self.feeds[planet_id]:
-            return False
-
+            # Should update the attachment
+            for a in f["attach_urls"]:
+                self.attachments[planet_id][a["id"]].SetFile(a["file"], a["type"])
+            escape = True
+            
         # parse the artist first
         if not f["account_no"] in self.artists[planet_id]:
             # add
@@ -177,7 +181,16 @@ class FNSModule():
             self.artists[planet_id][f["account_no"]].artist_id = f["artist_id"]
             self.artists[planet_id][f["account_no"]].nickname = f["nickname"]
             self.artists[planet_id][f["account_no"]].profile_picture = f["profile_picture"]
-        
+        else:
+            if self.artists[planet_id][f["account_no"]].profile_picture != f["profile_picture"]:
+                self.artists[planet_id][f["account_no"]].profile_picture = f["profile_picture"]
+
+            if self.artists[planet_id][f["account_no"]].nickname != f["nickname"]:
+                self.artists[planet_id][f["account_no"]].nickname = f["nickname"]
+
+        if escape:
+            return self.feeds[planet_id][f["id"]]
+
         feed = FNSFeed(f["id"])
         feed.SetBody(f["body"])
         feed.SetDate(f.get("create_date", ""), f.get("modify_date", ""), f.get("publish_date", ""))
@@ -203,7 +216,7 @@ class FNSModule():
 
         feed.SetArtist(self.artists[planet_id][f["account_no"]])
         self.__addFeed(planet_id, feed.feed_id, feed)
-        return True
+        return feed
     
     def __init__(self, sess):
         """ (FNSModule, UserSession) -> NoneType
@@ -242,7 +255,5 @@ class FNSModule():
             f =  self.__processFeed(planet_id, feed)
             if f is not None:
                 added.append(f)
-
-        return added, fns_obj["next"]
         
-
+        return added, fns_obj["next"]
