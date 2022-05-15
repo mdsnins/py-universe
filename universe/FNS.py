@@ -216,10 +216,10 @@ class FNSModule():
         self.tags = {}
 
     def LoadFeed(self, planet_id, artist_id = 1, next = 0.0, search_user = '', size = 10, tags = ''):
-        """ PRIVATE (FNSModule, Int, Int, Float, String, Int, String) -> (Int, Float)
+        """ (FNSModule, Int, Int, Float, String, Int, String) -> (List<FNSFeed>, Float)
         Load FNS feeds from given planet id and information.
         Also, process feeds internally.
-        Returns a tuple of the number of feeds proceed and the next search parameter.
+        Returns a tuple of the list of feeds proceed and the next search parameter.
         """
         if not planet_id in self.artists:
             self.artists[planet_id] = dict()
@@ -237,11 +237,12 @@ class FNSModule():
 
         fns_obj = fns_obj["fns"]
 
-        count = 0
+        added = []
         for feed in fns_obj["feeds"]:
-            if self.__processFeed(planet_id, feed):
-                count += 1
-        
-        return count, fns_obj["next"]
+            f =  self.__processFeed(planet_id, feed)
+            if f is not None:
+                added.append(f)
+
+        return added, fns_obj["next"]
         
 
